@@ -4,7 +4,7 @@
 Тема проєкту: **"Система управління відкритими даними"**
 
 # Виконавці
-*студент 2-го курсу, групи ІМ-32*<span padding-right:5em></span> **Дмитро Кулик** [Telegram](https://t.me/dimakulyk2005)
+*студент 2-го курсу, групи ІМ-32*<span padding-right:5em></span> **Дмитро КУЛИК** [Telegram](https://t.me/dimakulyk2005)
 
 *студент 2-го курсу, групи ІМ-32*<span padding-right:5em></span> **Ярослав КАНТУР** [Telegram](https://t.me/yarokant)
 
