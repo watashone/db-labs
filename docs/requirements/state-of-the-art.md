@@ -551,13 +551,13 @@ OpenStreetMap має активну спільноту, форуми та інш
 8. *[Веб-скрапінг (Web Scraping)](https://uk.wikipedia.org/wiki/Web_scraping)*
 9. *[Веб-краулінг (Web Crawling)](https://uk.wikipedia.org/wiki/Пошуковий_робот)*
 10. *[Краудсорсинг (Crowdsourcing)](https://uk.wikipedia.org/wiki/Краудсорсинг)*
-11. *[Хостинг](https://www.hostpapa.com/blog/web-hosting/the-pros-and-cons-of-shared-vs-dedicated-vs-vps-vs-cloud-web-hosting/#how-to-choose)
-12. *[Основні види баз даних](https://www.tutorialspoint.com/dbms/index.htm)
-13. *[Об'єктно-орієнтовані бази даних](https://www.geeksforgeeks.org/object-oriented-database/)
+11. *[Хостинг](https://www.hostpapa.com/blog/web-hosting/the-pros-and-cons-of-shared-vs-dedicated-vs-vps-vs-cloud-web-hosting/#how-to-choose)*
+12. *[Основні види баз даних](https://www.tutorialspoint.com/dbms/index.htm)*
+13. *[Об'єктно-орієнтовані бази даних](https://www.geeksforgeeks.org/object-oriented-database/)*
 14. *[JSON](https://www.json.org/json-en.html)*
 15. *[XML](https://www.w3.org/XML/)*
-16. *[CSV](https://datatracker.ietf.org/doc/html/rfc4180)
-17. *[YAML](https://yaml.org/spec/)
+16. *[CSV](https://datatracker.ietf.org/doc/html/rfc4180)*
+17. *[YAML](https://yaml.org/spec/)*
 18. *[INI](https://www.lifewire.com/how-to-open-edit-ini-files-2622755)*
 19. *[SQL](https://www.w3schools.com/sql/)*
 20. *[Машинне навчання](https://uk.wikipedia.org/wiki/Машинне_навчання)*
