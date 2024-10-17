@@ -140,6 +140,94 @@ Role "1,1" -- "0,*" Permission
 
 **[ER-модель](https://www.bestprog.net/uk/2019/01/24/the-concept-of-er-model-the-concept-of-essence-and-communication-attributes-attribute-types-ua/)** – це представлення бази даних у вигляді наочних графічних діаграм. ER-модель візуалізує процес, що визначає деяку предметну область.
 
+```
+@startuml
+
+entity User  {
+  id: NUMBER
+  name: TEXT
+  password: TEXT
+  email: TEXT
+  role_id: NUMBER
+  account_creation_date: DATETIME
+  last_login_date: DATETIME
+}
+
+entity Session  {
+  session_id: NUMBER
+  user_id: NUMBER
+  login_time: DATETIME
+  logout_time: DATETIME
+}
+
+entity Role {
+    id: NUMBER
+    name: TEXT
+    description: TEXT
+}
+
+entity Permission {
+    description: TEXT
+    id: NUMBER
+    name: TEXT
+}
+
+entity Comment {
+    content: TEXT
+    creation_date: DATETIME
+    user_id: NUMBER
+    data_id: NUMBER
+    id: NUMBER
+}
+
+entity Data {
+    upload_data: DATETIME
+    last_edit_date: DATETIME
+    user_id: NUMBER
+    id: NUMBER
+    name: TEXT
+    content: TEXT
+}
+
+entity Category {
+    id: NUMBER
+    name: TEXT
+    description: TEXT
+}
+
+entity Access {
+    data_id: NUMBER
+    access_type: TEXT
+    id: NUMBER
+    user_id: NUMBER
+}
+
+entity Log {
+    action_date: DATETIME
+    user_id: NUMBER
+    data_id: NUMBER
+    log_Id: NUMBER
+    action_type: TEXT
+}
+  
+
+User "1,1" -- "0,*" Session
+User "1,1" -- "0,*" Role
+User "1,1" -- "0,*" Comment
+User "1,1" -- "0,*" Log
+User "1,1" -- "0,*" Access
+
+Role "1,1" -- "0,*" Permission
+
+Data "1,1" -- "0,*" Comment
+Data "1,1" -- "0,*" Category
+Data "1,1" -- "0,*" Access
+Data "0,*" -- "1,1" Log
+
+
+@enduml
+```
+
 ## Реляційна схема
 
 **[Реляційна схема](https://zpls.in.ua/shho-take-relyaciyna-skhema-bazi-danikh-kompanii/)** визначається як набір взаємопов’язаних реляційних таблиць і пов’язаних елементів, що охоплює базові таблиці, представлення даних, індекси, домени, ролі користувачів і збережені модулі, створені для задоволення вимог до даних конкретного підприємства або програм.
