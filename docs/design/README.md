@@ -51,13 +51,13 @@ entity Permission.description <<TEXT>> #96cdff
 entity Permission.role_id <<TEXT>> #96cdff
 
 entity Session <<ENTITY>> #b2f31d
-entity Session.session_id <<NUMBER>> #96cdff
+entity Session.id <<NUMBER>> #96cdff
 entity Session.login_time <<DATETIME>> #96cdff
 entity Session.logout_time <<DATETIME>> #96cdff
 entity Session.user_id <<NUMBER>> #96cdff
 
 entity Log <<ENTITY>> #b2f31d
-entity Log.log_id <<NUMBER>> #96cdff
+entity Log.id <<NUMBER>> #96cdff
 entity Log.action_type <<TEXT>> #96cdff
 entity Log.action_date <<DATETIME>> #96cdff
 entity Log.user_id <<NUMBER>> #96cdff
@@ -158,7 +158,7 @@ entity User  {
 }
 
 entity Session  {
-  session_id: NUMBER
+  id: NUMBER
   login_time: DATETIME
   logout_time: DATETIME
   user_id: NUMBER
@@ -208,7 +208,7 @@ entity Access {
 }
 
 entity Log {
-    log_id: NUMBER
+    id: NUMBER
     action_type: TEXT
     action_date: DATETIME
     user_id: NUMBER
