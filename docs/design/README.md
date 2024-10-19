@@ -189,7 +189,7 @@ entity Data {
     id: NUMBER
     name: TEXT
     content: TEXT
-    upload_data: DATETIME
+    upload_date: DATETIME
     last_edit_date: DATETIME
     category_id: NUMBER
 }
