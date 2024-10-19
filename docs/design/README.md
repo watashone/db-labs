@@ -104,12 +104,12 @@ Permission.name -u-* Permission
 Permission.description -u-* Permission
 Permission.role_id -u-* Permission
 
-Session.session_id --* Session
+Session.id --* Session
 Session.user_id --* Session
 Session.login_time --* Session
 Session.logout_time --* Session
 
-Log.log_id -u-* Log
+Log.id -u-* Log
 Log.action_type -u-* Log
 Log.action_date -u-* Log
 Log.user_id -u-* Log
