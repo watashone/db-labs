@@ -179,7 +179,7 @@ entity Access {
 entity Log {
     id: NUMBER
     action_type: TEXT
-    action_date: DATETIM
+    action_date: DATETIME
 }
   
 
