@@ -8,7 +8,7 @@
 
 ## SQL-скрипт для створення та початкового наповнення бази даних
 
-```
+```SQL
 -- MySQL Workbench Forward Engineering
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
