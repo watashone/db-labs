@@ -3,7 +3,7 @@
 ## Короткий зміст
 
 - [Реалізація інформаційного та програмного забезпечення](#реалізація-інформаційного-та-програмного-забезпечення)
-  - [SQL-скрипт для створення та початкового наповнення бази даних](#SQL-скрипт-для-створення-та-початкового-наповнення-бази-даних)
+  - [SQL-скрипт для створення та початкового наповнення бази даних](#sql-скрипт-для-створення-та-початкового-наповнення-бази-даних)
   - [RESTful сервіс для управління даними](#restful-сервіс-для-управління-даними)
 
 ## SQL-скрипт для створення та початкового наповнення бази даних
@@ -354,7 +354,7 @@ COMMIT;
 ## RESTful сервіс для управління даними
 
 **main.py** (ініціалізує FastAPI та підключає маршрути)
-```
+```python
 from fastapi import FastAPI
 from database import engine, Base
 from routes import router
@@ -367,7 +367,7 @@ app.include_router(router)
 ```
 
 **database.py** (налаштовує підключення до бази даних і створює об'єкти для роботи з нею)
-```
+```python
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -382,7 +382,7 @@ Base = declarative_base()
 ```
 
 **models.py** (визначає ORM-моделі для таблиць Data і Category)
-```
+```python
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
@@ -412,7 +412,7 @@ class Category(Base):
 ```
 
 **schemas.py** (визначає Pydantic-схеми для валідації даних, які надходять у запитах і відповідях)
-```
+```python
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -460,7 +460,7 @@ class DataPatch(BaseModel):
 ```
 
 **routes.py** (визначає API-ендпоїнти для роботи з даними та категоріями)
-```
+```python
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
