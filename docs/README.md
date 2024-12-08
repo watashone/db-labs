@@ -20,7 +20,7 @@ footer: "ECL 2.0 Licensed | Copyright © 2024 Dmytro Kulyk |"
 
 **Виконав:** 
 
-*студент 2-го курсу, групи ІМ-32*<span padding-right:5em></span> **Дмитро КУЛИК** [Telegram](https://t.me/dimakulyk2005)
+*студент 2-го курсу, групи ІМ-32*<span padding-right:5em></span> **Артем БАЛАБАСЬ** [Telegram](https://t.me/watashone)
 
 **Керівник**
 
