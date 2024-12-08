@@ -353,314 +353,353 @@ COMMIT;
 
 ## RESTful сервіс для управління даними
 
-**main.py** (ініціалізує FastAPI та підключає маршрути)
-```python
-from fastapi import FastAPI
-from database import engine, Base
-from routes import router
+## Сервер & Підключення до БД
+**app.js**
+``` javascript
+import express from "express"
+import userRouter from "./routes/UserRoutes.js";
+import sessionRouter from "./routes/SessionRoutes.js";
 
-Base.metadata.create_all(bind=engine)
+const PORT = process.env.PORT || 3000;
 
-app = FastAPI()
+const app = express();
 
-app.include_router(router)
-```
+app.use(express.json());
+app.use("/api", userRouter);
+app.use("/api", sessionRouter);
 
-**database.py** (налаштовує підключення до бази даних і створює об'єкти для роботи з нею)
-```python
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from config import DB_PASSWORD
-
-SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://root:{DB_PASSWORD}@127.0.0.1:3306/mydb"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
 ```
 
-**models.py** (визначає ORM-моделі для таблиць Data і Category)
-```python
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
-from database import Base
-from datetime import datetime, timezone, timedelta
+**db.js**
+```js
+import mysql from "mysql2/promise"
+import dotenv from "dotenv";
 
+dotenv.config();
 
-class Data(Base):
-    __tablename__ = 'Data'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, index=True, unique=True)
-    content = Column(String)
-    upload_date = Column(DateTime, default=lambda: datetime.now(timezone.utc) + timedelta(hours=2))
-    last_edit_date = Column(DateTime, nullable=True)
-    category_id = Column(Integer, ForeignKey('Category.id'))
+const pool = await mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+});
 
-    category = relationship("Category", back_populates="data_items")
+export default pool;
+```
+## Маршрути
+**UserRoutes.js** 
+```js
+import {Router} from "express";
+import userController from "../controllers/UserController.js";
 
+const router = Router();
 
-class Category(Base):
-    __tablename__ = 'Category'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, index=True)
-    description = Column(String, nullable=True)
+router.post("/users", userController.createUser)
+router.get("/users", userController.getUsers)
+router.get("/users/:id", userController.getOneUser)
+router.put("/users", userController.updateUser)
+router.delete("/users/:id", userController.deleteUser)
 
-    data_items = relationship("Data", back_populates="category")
-
+export default router;
 ```
 
-**schemas.py** (визначає Pydantic-схеми для валідації даних, які надходять у запитах і відповідях)
-```python
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+**SessionRoutes.js**
+```js
+import {Router} from "express";
+import sessionController from "../controllers/SessionController.js";
 
+const router = Router();
 
-class DataCreate(BaseModel):
-    id: Optional[int] = None
-    name: str
-    content: str
-    upload_date: Optional[datetime] = None
-    last_edit_date: Optional[datetime] = None
-    category_id: int
+router.post("/sessions", sessionController.createSession)
+router.get("/sessions", sessionController.getSessions)
+router.get("/sessions/:id", sessionController.getOneSession)
+router.put("/sessions", sessionController.updateSession)
+router.delete("/sessions/:id", sessionController.deleteSession)
 
+export default router;
+```
+## Контролери
+**UserController.js**
+```js
+import asyncHandler from "../utils/asyncHandler.js"
+import UserService from "../services/UserService.js"
+import ApiError from "../utils/apiError.js";
+import transformData from "../utils/transformUserData.js";
+import Validator from "../utils/Validator.js";
 
-class CategoryCreate(BaseModel):
-    id: Optional[int] = None
-    name: str
-    description: Optional[str] = None
+class UserController {
+    createUser = asyncHandler(async (req, res) => {
+        const data = transformData(req.body);
+        const {id} = Validator.validateUserData(data);
 
+        const user = await UserService.getOneUser(id);
+        if (user) {
+            throw new ApiError("User already exists", 400)
+        }
 
-class DataResponse(DataCreate):
-    class Config:
-        orm_mode = True
+        await UserService.createUser(data);
+        res.status(201).json(`User with ID ${id} successfully created`);
+    });
 
+    getUsers = asyncHandler(async (req, res) => {
+        const users = await UserService.getUsers();
+        if (!users || users.length === 0) {
+            throw new ApiError('No users found', 404);
+        }
+        res.status(200).json(users)
+    })
 
-class CategoryResponse(CategoryCreate):
-    class Config:
-        orm_mode = True
+    getOneUser = asyncHandler(async (req, res) => {
+        const id = Validator.validateId(req.params.id);
+        const user = await Validator.checkEntityById(UserService.getOneUser, id, "User");
+        res.status(200).json(user);
+    })
 
+    updateUser = asyncHandler(async (req, res) => {
+        const data = transformData(req.body);
+        const {id} = Validator.validateUserData(data)
 
-class CategoryPatch(BaseModel):
-    id: int = None
-    name: str = None
-    description: Optional[str] = None
+        await Validator.checkEntityById(UserService.getOneUser, id, "User");
+        await UserService.updateUser(data);
+        res.status(200).json(`User with ID ${id} successfully updated`);
+    })
 
+    deleteUser = asyncHandler(async (req, res) => {
+        const id = Validator.validateId(req.params.id);
 
-class DataPatch(BaseModel):
-    id: int = None
-    name: str = None
-    content: str = None
-    upload_date: datetime = None
-    last_edit_date: Optional[datetime] = None
-    category_id: int = None
+        await Validator.checkEntityById(UserService.getOneUser, id, "User");
+        await UserService.deleteUser(id);
+        res.status(200).json(`User with ID ${id} successfully deleted`);
+    })
+}
 
+export default new UserController();
 ```
 
-**routes.py** (визначає API-ендпоїнти для роботи з даними та категоріями)
-```python
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-from models import Data, Category
-from schemas import DataCreate, CategoryCreate, DataResponse, CategoryResponse, CategoryPatch, DataPatch
-from database import SessionLocal
+**SessionController.js**
+```js
+import asyncHandler from "../utils/asyncHandler.js"
+import SessionService from "../services/SessionService.js";
+import Validator from "../utils/Validator.js";
+import ApiError from "../utils/apiError.js";
 
-router = APIRouter()
+class SessionController {
+    createSession = asyncHandler(async (req, res) => {
+        const data = req.body;
+        const {id} = Validator.validateSessionData(data);
 
+        const session = await SessionService.getOneSession(id);
+        if (session) {
+            throw new ApiError("Session already exists", 400)
+        }
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+        await SessionService.createSession(data);
+        res.status(201).json(`Session with ID ${id} successfully created`);
+    });
 
+    getSessions = asyncHandler(async (req, res) => {
+        const sessions = await SessionService.getSessions();
+        if (!sessions || sessions.length === 0) {
+            throw new ApiError('No sessions found', 404);
+        }
+        res.status(200).json(sessions)
+    })
 
-@router.get("/data/", response_model=List[DataResponse])
-async def read_data(db: Session = Depends(get_db)):
-    return db.query(Data).all()
+    getOneSession = asyncHandler(async (req, res) => {
+        const id = Validator.validateId(req.params.id);
+        const session = await Validator.checkEntityById(SessionService.getOneSession, id, "Session");
+        res.status(200).json(session);
+    })
 
+    updateSession = asyncHandler(async (req, res) => {
+        const data = req.body;
+        const {id} = Validator.validateSessionData(data)
 
-@router.get("/data/{data_id}", response_model=DataResponse)
-async def read_data_by_id(data_id: int, db: Session = Depends(get_db)):
-    db_data = db.query(Data).filter(data_id == Data.id).first()
-    if db_data is None:
-        raise HTTPException(status_code=404, detail="The data with the specified ID was not found")
-    return db_data
+        await Validator.checkEntityById(SessionService.getOneSession, id, "Session");
+        await SessionService.updateSession(data);
+        res.status(200).json(`Session with ID ${id} successfully updated`);
+    })
 
+    deleteSession = asyncHandler(async (req, res) => {
+        const id = Validator.validateId(req.params.id);
 
-@router.post("/data/", response_model=DataResponse)
-async def create_data(data: DataCreate, db: Session = Depends(get_db)):
-    id_data = db.query(Data).filter(data.id == Data.id).first()
-    if id_data:
-        raise HTTPException(status_code=400, detail="The data with this ID already exists")
+        await Validator.checkEntityById(SessionService.getOneSession, id, "Session");
+        await SessionService.deleteSession(id);
+        res.status(200).json(`Session with ID ${id} successfully deleted`);
+    })
+}
 
-    name_data = db.query(Data).filter(data.name == Data.name).first()
-    if name_data:
-        raise HTTPException(status_code=400, detail="The data with this name already exists")
+export default new SessionController();
+```
+## Сервіси для роботи з БД
+**UserService.js**
+```js
+import pool from "../db.js"
 
-    id_category = db.query(Category).filter(data.category_id == Category.id).first()
-    if not id_category:
-        raise HTTPException(status_code=400, detail="The category with the specified ID was not found")
+class UserService {
+    async createUser(data) {
+        const {id, name, password, email, creationDate, lastLoginDate, roleId} = data;
+        const values = [id, name, password, email, creationDate, lastLoginDate, roleId];
+        const query = `INSERT INTO User (id, name, password, email, account_creation_date, last_login_date, Role_id)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        return pool.query(query, values);
+    }
 
-    db_data = Data(**data.dict())
-    db.add(db_data)
-    db.commit()
-    db.refresh(db_data)
+    async getUsers() {
+        const [dataRows] = await pool.query('SELECT * FROM User');
+        return dataRows;
+    }
 
-    return db_data
+    async getOneUser(id) {
+        const [dataRow] = await pool.query('SELECT * FROM User WHERE id = ?', [id]);
+        return dataRow[0];
+    }
 
-
-@router.put("/data/{data_id}", response_model=DataResponse)
-async def update_data(data_id: int, data: DataCreate, db: Session = Depends(get_db)):
-    db_data = db.query(Data).filter(data_id == Data.id).first()
-    if db_data is None:
-        raise HTTPException(status_code=404, detail="The data with the specified ID was not found")
-
-    id_data = db.query(Data).filter(data.id == Data.id, data_id != Data.id).first()
-    if id_data:
-        raise HTTPException(status_code=400, detail="The data with this ID already exists")
-
-    name_data = db.query(Data).filter(data.name == Data.name, data_id != Data.id).first()
-    if name_data:
-        raise HTTPException(status_code=400, detail="The data with this name already exists")
-
-    if data.category_id:
-        id_category = db.query(Category).filter(data.category_id == Category.id).first()
-        if not id_category:
-            raise HTTPException(status_code=400, detail="The category with the specified ID was not found")
-
-    for key, value in data.dict().items():
-        setattr(db_data, key, value)
-
-    db.commit()
-    db.refresh(db_data)
-    return db_data
-
-
-@router.delete("/data/{data_id}", response_model=DataResponse)
-async def delete_data(data_id: int, db: Session = Depends(get_db)):
-    db_data = db.query(Data).filter(data_id == Data.id).first()
-    if db_data is None:
-        raise HTTPException(status_code=404, detail="The data with the specified ID was not found")
-
-    db.delete(db_data)
-    db.commit()
-    return db_data
-
-
-@router.patch("/data/{data_id}", response_model=DataResponse)
-async def patch_data(data_id: int, data: DataPatch, db: Session = Depends(get_db)):
-    db_data = db.query(Data).filter(data_id == Data.id).first()
-    if db_data is None:
-        raise HTTPException(status_code=404, detail="The data with the specified ID was not found")
-
-    updated_fields = data.dict(exclude_unset=True)
-
-    if 'id' in updated_fields and updated_fields['id'] != data_id:
-        id_data = db.query(Data).filter(Data.id == updated_fields['id']).first()
-        if id_data:
-            raise HTTPException(status_code=400, detail="The data with this ID already exists")
-
-    if 'name' in updated_fields:
-        name_data = db.query(Data).filter(Data.name == updated_fields['name'], data_id != Data.id).first()
-        if name_data:
-            raise HTTPException(status_code=400, detail="The data with this name already exists")
-
-    if 'category_id' in updated_fields:
-        category = db.query(Category).filter(Category.id == updated_fields['category_id']).first()
-        if not category:
-            raise HTTPException(status_code=400, detail="The category with the specified ID was not found")
-
-    for key, value in updated_fields.items():
-        setattr(db_data, key, value)
-
-    db.commit()
-    db.refresh(db_data)
-    return db_data
+    async updateUser(data) {
+        const {id, name, password, email, lastLoginDate, roleId} = data;
+        const values = [name, password, email, lastLoginDate, roleId, id];
+        const query = `UPDATE User
+                       SET name            = ?,
+                           password        = ?,
+                           email           = ?,
+                           last_login_date = ?,
+                           Role_id         = ?
+                       WHERE id = ?`;
+        return pool.query(query, values);
+    }
 
 
-@router.get("/category/", response_model=List[CategoryResponse])
-async def read_category(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return db.query(Category).offset(skip).limit(limit).all()
+    async deleteUser(id) {
+        return pool.query('DELETE FROM User WHERE id = ?', [id]);
+    }
+}
+
+export default new UserService();
+```
+
+**SessionService.js**
+```js
+import pool from "../db.js";
+
+class SessionService {
+    async createSession(data) {
+        const {id, login_time, logout_time, User_id} = data;
+        const values = [id, login_time, logout_time, User_id];
+        const query = `INSERT INTO Session (id, login_time, logout_time, User_id)
+                       VALUES (?, ?, ?, ?)`;
+        return pool.query(query, values);
+    }
+
+    async getSessions() {
+        const [dataRows] = await pool.query('SELECT * FROM Session');
+        return dataRows;
+    }
+
+    async getOneSession(id) {
+        const [dataRow] = await pool.query('SELECT * FROM Session WHERE id = ?', [id]);
+        return dataRow[0];
+    }
+
+    async updateSession(data) {
+        const {id, login_time, logout_time, User_id} = data;
+        const values = [login_time, logout_time, User_id, id];
+        const query = `UPDATE Session
+                       SET login_time  = ?,
+                           logout_time = ?,
+                           User_id     = ?
+                       WHERE id = ?`;
+        return pool.query(query, values);
+    }
 
 
-@router.get("/category/{category_id}", response_model=CategoryResponse)
-async def read_category_by_id(category_id: int, db: Session = Depends(get_db)):
-    db_category = db.query(Category).filter(category_id == Category.id).first()
-    if db_category is None:
-        raise HTTPException(status_code=404, detail="The category with the specified ID was not found")
-    return db_category
+    async deleteSession(id) {
+        return pool.query('DELETE FROM Session WHERE id = ?', [id]);
+    }
+}
 
+export default new SessionService();
+```
 
-@router.post("/category/", response_model=CategoryResponse)
-async def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
-    existing_category = db.query(Category).filter(category.id == Category.id).first()
-    if existing_category:
-        raise HTTPException(status_code=400, detail="The category with this ID already exists")
+## Клас для помилок програми
+**apiError.js**
+```js
+export default class ApiError extends Error {
+    constructor(message, statusCode) {
+        super(message);
+        this.statusCode = statusCode;
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
 
-    db_category = Category(**category.dict())
-    db.add(db_category)
-    db.commit()
-    db.refresh(db_category)
+```
+## Асинхронний обробник
+**asyncHandler.js**
+```js
+const asyncUtil = fn =>
+    function asyncUtilWrap(...args) {
+        const fnReturn = fn(...args)
+        const next = args[args.length - 1]
+        return Promise.resolve(fnReturn).catch(next)
+    }
 
-    return db_category
+export default asyncUtil;
+```
+## Трансформація даних користувача
+**transformUserData.js**
+```js
+const transformUserData = (data) => {
+    return {
+        id: data.id,
+        name: data.name,
+        password: data.password,
+        email: data.email,
+        creationDate: data.account_creation_date,
+        lastLoginDate: data.last_login_date,
+        roleId: data.Role_id
+    };
+};
 
+export default transformUserData;
+```
+## Валідатор даних
+**Validator.js**
+```js
+import ApiError from "./apiError.js";
 
-@router.put("/category/{category_id}", response_model=CategoryResponse)
-async def update_category(category_id: int, category: CategoryCreate, db: Session = Depends(get_db)):
-    db_category = db.query(Category).filter(category_id == Category.id).first()
-    if db_category is None:
-        raise HTTPException(status_code=404, detail="The category with the specified ID was not found")
+class Validator {
+    validateId = function (id) {
+        if (!id || isNaN(id) || id <= 0) {
+            throw new ApiError('Invalid or missing user ID', 400);
+        }
+        return id;
+    };
 
-    id_data = db.query(Data).filter(category.id == Category.id, category_id != Category.id).first()
-    if id_data:
-        raise HTTPException(status_code=400, detail="The category with this ID already exists")
+    validateUserData = function (data) {
+        const {id, name, password, email, creationDate, lastLoginDate, roleId} = data;
+        if (!id || !name || !password || !email || !creationDate || !lastLoginDate || !roleId) {
+            throw new ApiError("All required fields must be provided", 400);
+        }
+        return {id, name, password, email, creationDate, lastLoginDate, roleId};
+    };
 
-    for key, value in category.dict().items():
-        setattr(db_category, key, value)
+    validateSessionData = function (data) {
+        const {id, login_time, logout_time, User_id} = data;
+        if (!id || !login_time || !logout_time || !User_id) {
+            throw new ApiError("All required fields must be provided", 400);
+        }
+        return {id, login_time, logout_time, User_id};
+    }
 
-    db.commit()
-    db.refresh(db_category)
-    return db_category
+    async checkEntityById(serviceMethod, id, entityName = "Entity") {
+        const entity = await serviceMethod(id);
+        if (!entity) {
+            throw new ApiError(`${entityName} with ID ${id} not found`, 404);
+        }
+        return entity;
+    };
+}
 
-
-@router.delete("/category/{category_id}", response_model=CategoryResponse)
-async def delete_category(category_id: int, db: Session = Depends(get_db)):
-    db_category = db.query(Category).filter(category_id == Category.id).first()
-    if db_category is None:
-        raise HTTPException(status_code=404, detail="The category with the specified ID was not found")
-
-    related_data = db.query(Data).filter(category_id == Data.category_id).first()
-    if related_data:
-        raise HTTPException(status_code=403, detail="Cannot delete category with associated data")
-
-    db.delete(db_category)
-    db.commit()
-    return db_category
-
-
-@router.patch("/category/{category_id}", response_model=CategoryResponse)
-async def patch_category(category_id: int, category: CategoryPatch, db: Session = Depends(get_db)):
-    db_category = db.query(Category).filter(category_id == Category.id).first()
-    if db_category is None:
-        raise HTTPException(status_code=404, detail="The category with the specified ID was not found")
-
-    updated_data = category.dict(exclude_unset=True)
-
-    if 'id' in updated_data and updated_data['id'] != category_id:
-        id_category = db.query(Category).filter(Category.id == updated_data['id']).first()
-        if id_category:
-            raise HTTPException(status_code=400, detail="The category with this ID already exists")
-
-    for key, value in updated_data.items():
-        setattr(db_category, key, value)
-
-    db.commit()
-    db.refresh(db_category)
-    return db_category
-
+export default new Validator();
 ```
