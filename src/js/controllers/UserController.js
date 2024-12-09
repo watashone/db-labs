@@ -14,15 +14,8 @@ class UserController {
             throw new ApiError("User already exists", 400)
         }
 
-        const userByEmail = await UserService.getOneUserByEmail(email);
-        if (userByEmail) {
-            throw new ApiError("Email already in use", 400);
-        }
-
-        const roleExists = await UserService.roleExists(roleId);
-        if (!roleExists) {
-            throw new ApiError("Role does not exist", 400);
-        }
+        await Validator.validateEmail(UserService.getOneUserByEmail, email)
+        await Validator.validateRole(UserService.roleExists, roleId)
 
         await UserService.createUser(data);
         res.status(201).json(`User with ID ${id} successfully created`);
@@ -44,9 +37,12 @@ class UserController {
 
     updateUser = asyncHandler(async (req, res) => {
         const data = transformData(req.body);
-        const {id} = Validator.validateUserData(data)
+        const {id, email, roleId} = Validator.validateUserData(data)
 
         await Validator.checkEntityById(UserService.getOneUserById, id, "User");
+        await Validator.validateEmail(UserService.getOneUserByEmail, email)
+        await Validator.validateRole(UserService.roleExists, roleId)
+
         await UserService.updateUser(data);
         res.status(200).json(`User with ID ${id} successfully updated`);
     })
@@ -55,6 +51,7 @@ class UserController {
         const id = Validator.validateId(req.params.id);
 
         await Validator.checkEntityById(UserService.getOneUserById, id, "User");
+
         await UserService.deleteUser(id);
         res.status(200).json(`User with ID ${id} successfully deleted`);
     })

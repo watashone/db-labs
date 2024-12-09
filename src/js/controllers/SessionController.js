@@ -13,11 +13,7 @@ class SessionController {
             throw new ApiError("Session already exists", 400)
         }
 
-        const userExists = await SessionService.userRoleExists(User_id);
-        if (!userExists) {
-            throw new ApiError("Role does not exist", 400);
-        }
-
+        await Validator.validateUser(SessionService.userExists, User_id)
         await SessionService.createSession(data);
         res.status(201).json(`Session with ID ${id} successfully created`);
     });
@@ -38,9 +34,11 @@ class SessionController {
 
     updateSession = asyncHandler(async (req, res) => {
         const data = req.body;
-        const {id} = Validator.validateSessionData(data)
+        const {id, User_id} = Validator.validateSessionData(data)
 
+        await Validator.validateUser(SessionService.userExists, User_id)
         await Validator.checkEntityById(SessionService.getOneSession, id, "Session");
+
         await SessionService.updateSession(data);
         res.status(200).json(`Session with ID ${id} successfully updated`);
     })
