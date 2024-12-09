@@ -440,15 +440,8 @@ class UserController {
             throw new ApiError("User already exists", 400)
         }
 
-        const userByEmail = await UserService.getOneUserByEmail(email);
-        if (userByEmail) {
-            throw new ApiError("Email already in use", 400);
-        }
-
-        const roleExists = await UserService.roleExists(roleId);
-        if (!roleExists) {
-            throw new ApiError("Role does not exist", 400);
-        }
+        await Validator.validateEmail(UserService.getOneUserByEmail, email)
+        await Validator.validateRole(UserService.roleExists, roleId)
 
         await UserService.createUser(data);
         res.status(201).json(`User with ID ${id} successfully created`);
@@ -470,9 +463,12 @@ class UserController {
 
     updateUser = asyncHandler(async (req, res) => {
         const data = transformData(req.body);
-        const {id} = Validator.validateUserData(data)
+        const {id, email, roleId} = Validator.validateUserData(data)
 
         await Validator.checkEntityById(UserService.getOneUserById, id, "User");
+        await Validator.validateEmail(UserService.getOneUserByEmail, email)
+        await Validator.validateRole(UserService.roleExists, roleId)
+
         await UserService.updateUser(data);
         res.status(200).json(`User with ID ${id} successfully updated`);
     })
@@ -481,6 +477,7 @@ class UserController {
         const id = Validator.validateId(req.params.id);
 
         await Validator.checkEntityById(UserService.getOneUserById, id, "User");
+
         await UserService.deleteUser(id);
         res.status(200).json(`User with ID ${id} successfully deleted`);
     })
@@ -506,11 +503,7 @@ class SessionController {
             throw new ApiError("Session already exists", 400)
         }
 
-        const userExists = await SessionService.userRoleExists(User_id);
-        if (!userExists) {
-            throw new ApiError("Role does not exist", 400);
-        }
-
+        await Validator.validateUser(SessionService.userExists, User_id)
         await SessionService.createSession(data);
         res.status(201).json(`Session with ID ${id} successfully created`);
     });
@@ -531,9 +524,11 @@ class SessionController {
 
     updateSession = asyncHandler(async (req, res) => {
         const data = req.body;
-        const {id} = Validator.validateSessionData(data)
+        const {id, User_id} = Validator.validateSessionData(data)
 
+        await Validator.validateUser(SessionService.userExists, User_id)
         await Validator.checkEntityById(SessionService.getOneSession, id, "Session");
+
         await SessionService.updateSession(data);
         res.status(200).json(`Session with ID ${id} successfully updated`);
     })
@@ -719,6 +714,27 @@ class Validator {
             throw new ApiError("All required fields must be provided", 400);
         }
         return {id, login_time, logout_time, User_id};
+    }
+
+    async validateEmail(serviceMethod, email) {
+        const userByEmail = await serviceMethod(email);
+        if (userByEmail) {
+            throw new ApiError("Email already in use", 400);
+        }
+    }
+
+    async validateRole(serviceMethod, role) {
+        const roleExists = await serviceMethod(role);
+        if (!roleExists) {
+            throw new ApiError("Role does not exist", 400);
+        }
+    }
+
+    async validateUser(serviceMethod, user) {
+        const userExists = await serviceMethod(user);
+        if (!userExists) {
+            throw new ApiError("User does not exist", 400);
+        }
     }
 
     async checkEntityById(serviceMethod, id, entityName = "Entity") {
