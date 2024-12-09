@@ -433,11 +433,21 @@ import Validator from "../utils/Validator.js";
 class UserController {
     createUser = asyncHandler(async (req, res) => {
         const data = transformData(req.body);
-        const {id} = Validator.validateUserData(data);
+        const {id, email, roleId} = Validator.validateUserData(data);
 
-        const user = await UserService.getOneUser(id);
-        if (user) {
+        const userById = await UserService.getOneUserById(id);
+        if (userById) {
             throw new ApiError("User already exists", 400)
+        }
+
+        const userByEmail = await UserService.getOneUserByEmail(email);
+        if (userByEmail) {
+            throw new ApiError("Email already in use", 400);
+        }
+
+        const roleExists = await UserService.roleExists(roleId);
+        if (!roleExists) {
+            throw new ApiError("Role does not exist", 400);
         }
 
         await UserService.createUser(data);
@@ -454,7 +464,7 @@ class UserController {
 
     getOneUser = asyncHandler(async (req, res) => {
         const id = Validator.validateId(req.params.id);
-        const user = await Validator.checkEntityById(UserService.getOneUser, id, "User");
+        const user = await Validator.checkEntityById(UserService.getOneUserById, id, "User");
         res.status(200).json(user);
     })
 
@@ -462,7 +472,7 @@ class UserController {
         const data = transformData(req.body);
         const {id} = Validator.validateUserData(data)
 
-        await Validator.checkEntityById(UserService.getOneUser, id, "User");
+        await Validator.checkEntityById(UserService.getOneUserById, id, "User");
         await UserService.updateUser(data);
         res.status(200).json(`User with ID ${id} successfully updated`);
     })
@@ -470,7 +480,7 @@ class UserController {
     deleteUser = asyncHandler(async (req, res) => {
         const id = Validator.validateId(req.params.id);
 
-        await Validator.checkEntityById(UserService.getOneUser, id, "User");
+        await Validator.checkEntityById(UserService.getOneUserById, id, "User");
         await UserService.deleteUser(id);
         res.status(200).json(`User with ID ${id} successfully deleted`);
     })
@@ -489,11 +499,16 @@ import ApiError from "../utils/apiError.js";
 class SessionController {
     createSession = asyncHandler(async (req, res) => {
         const data = req.body;
-        const {id} = Validator.validateSessionData(data);
+        const {id, User_id} = Validator.validateSessionData(data);
 
         const session = await SessionService.getOneSession(id);
         if (session) {
             throw new ApiError("Session already exists", 400)
+        }
+
+        const userExists = await SessionService.userRoleExists(User_id);
+        if (!userExists) {
+            throw new ApiError("Role does not exist", 400);
         }
 
         await SessionService.createSession(data);
@@ -553,8 +568,13 @@ class UserService {
         return dataRows;
     }
 
-    async getOneUser(id) {
+    async getOneUserById(id) {
         const [dataRow] = await pool.query('SELECT * FROM User WHERE id = ?', [id]);
+        return dataRow[0];
+    }
+
+    async getOneUserByEmail(email) {
+        const [dataRow] = await pool.query('SELECT * FROM User WHERE email = ?', [email]);
         return dataRow[0];
     }
 
@@ -571,9 +591,13 @@ class UserService {
         return pool.query(query, values);
     }
 
-
     async deleteUser(id) {
         return pool.query('DELETE FROM User WHERE id = ?', [id]);
+    }
+
+    async roleExists(id) {
+        const [dataRow] = await pool.query('SELECT * FROM Role WHERE id = ?', [id]);
+        return dataRow.length > 0;
     }
 }
 
@@ -614,9 +638,13 @@ class SessionService {
         return pool.query(query, values);
     }
 
-
     async deleteSession(id) {
         return pool.query('DELETE FROM Session WHERE id = ?', [id]);
+    }
+
+    async userExists(id) {
+        const [dataRow] = await pool.query('SELECT * FROM User WHERE id = ?', [id]);
+        return dataRow.length > 0;
     }
 }
 
