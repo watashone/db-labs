@@ -84,34 +84,73 @@ Get-запит на отримання всіх даних (Session з ID 6 зн
 
 ## Виключні ситуації для User
 ### GET
-Немає даних із заданим id
+Немає User за заданим ID
+![](./images/user-error/1.1.png)
+
+Недійсний або відсутній ID користувача
+![](./images/user-error/1.2.png)
 
 ### POST
-Введено не всі дані, що є обов’язковими для заповнення
+User за заданим ID вже існує
+![](./images/user-error/2.1.png)
+
+Необхідно заповнити всі обов'язкові поля
+![](./images/user-error/2.2.png)
+
+Вже використовується email
+![](./images/user-error/2.3.png)
+
+Role не існує, неможливо створити User
+![](./images/user-error/2.4.png)
+
 
 ### PUT
-Введено не всі дані, що є обов’язковими для заповнення
+Немає User за заданим ID
+![](./images/user-error/3.1.png)
+
+Необхідно заповнити всі обов'язкові поля
+![](./images/user-error/3.2.png)
+
+Вже використовується email
+![](./images/user-error/3.3.png)
+
+Role не існує, неможливо оновити User
+![](./images/user-error/3.4.png)
 
 ### DELETE
-Немає даних із заданим id 
-
-### PATCH
-Немає даних із заданим id
+Немає User за заданим ID
+![](./images/user-error/4.1.png)
 
 ## Виключні ситуації для Session
 
 ### GET
-Немає категорії із заданим id
+Немає Session за заданим ID
+![](./images/session-error/1.1.png)
+
+Недійсний або відсутній ID користувача
+![](./images/session-error/1.2.png)
 
 ### POST
-Введено не всі дані, що є обов’язковими для заповнення
+Session за заданим ID вже існує
+![](./images/session-error/2.1.png)
+
+Необхідно заповнити всі обов'язкові поля
+![](./images/session-error/2.2.png)
+
+User не існує, неможливо створити Session
+![](./images/session-error/2.3.png)
 
 ### PUT
-Введено не всі дані, що є обов’язковими для заповнення
+Немає Session за заданим ID
+![](./images/session-error/3.1.png)
+
+Необхідно заповнити всі обов'язкові поля
+![](./images/session-error/3.2.png)
+
+User не існує, неможливо оновити Session
+![](./images/session-error/3.3.png)
 
 ### DELETE
-Немає категорії із заданим id 
-
-### PATCH
-Немає категорії із заданим id
+Немає Session за заданим ID
+![](./images/session-error/4.1.png)
 
