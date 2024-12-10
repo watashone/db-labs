@@ -31,35 +31,60 @@
 ## Основний сценарій для User
 ### GET
 Get-запит на отримання всіх даних
-![](./images/session-base/1.1.png)
+![](./images/user-base/1.1.png)
+
+Get-запит на отримання даних по ID
+![](./images/user-base/1.2.png)
 
 ### POST
 Post-запит на додавання даних з усіма заповненими полями
+![](./images/user-base/2.1.png)
+
+Get-запит на отримання даних створеного User
+![](./images/user-base/2.2.png)
 
 ### PUT
-Put-запит на оновлення id, name, content та category
+Put-запит на оновлення name
+![](./images/user-base/3.1.png)
+
+Get-запит на отримання даних оновленого User
+![](./images/user-base/3.2.png)
 
 ### DELETE
 Delete-запит на видалення даних
+![](./images/user-base/4.1.png)
 
-### PATCH
-Patch-запит на оновлення name
+Get-запит на отримання всіх даних (User з ID 5 зник)
+![](./images/user-base/4.2.png)
 
 ## Основний сценарій для Session
 ### GET
-Get-запит на отримання всіх категорій
+Get-запит на отримання всіх даних
+![](./images/session-base/1.1.png)
+
+Get-запит на отримання даних по ID
+![](./images/session-base/1.2.png)
 
 ### POST
-Post-запит на додавання категорії з усіма заповненими полями
+Post-запит на додавання даних з усіма заповненими полями
+![](./images/session-base/2.1.png)
+
+Get-запит на отримання даних створеного Session
+![](./images/session-base/2.2.png)
 
 ### PUT
-Put-запит на оновлення id, name, description
+Put-запит на оновлення logout_time
+![](./images/session-base/3.1.png)
+
+Get-запит на отримання даних оновленого Session
+![](./images/session-base/3.2.png)
 
 ### DELETE
-Delete-запит на видалення категорії
+Delete-запит на видалення даних
+![](./images/session-base/4.1.png)
 
-### PATCH
-Patch-запит на оновлення id
+Get-запит на отримання всіх даних (Session з ID 6 зник)
+![](./images/session-base/4.2.png)
 
 ## Виключні ситуації для User
 ### GET
