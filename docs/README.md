@@ -13,7 +13,7 @@ actions:
     link: ./intro/
     type: primary
 
-footer: "ECL 2.0 Licensed | Copyright © 2024 Dmytro Kulyk |"
+footer: "ECL 2.0 Licensed | Copyright © 2024 Artem Balabas |"
 
 ---
 
